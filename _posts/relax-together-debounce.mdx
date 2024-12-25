@@ -1,0 +1,146 @@
+---
+title: 'Project Skripsi 2023'
+description: 'PROTOTIPE SISTEM ALARM PENDETEKSI ASAP DAN KEBAKARAN DINI MENGGUNAKAN KIPAS DAN POMPA AIR BERBASIS ARDUINO UNO'
+date: '2024-11-25T10:00:00Z'
+category: 'react'
+label: 'Project Skripsi 2023'
+---
+
+# PROTOTIPE SISTEM ALARM PENDETEKSI ASAP DAN KEBAKARAN DINI MENGGUNAKAN KIPAS DAN POMPA AIR BERBASIS ARDUINO UNO
+
+# Pendahuluan
+Project ini akan membahas cara membuat project PROTOTIPE SISTEM ALARM PENDETEKSI ASAP DAN KEBAKARAN DINI MENGGUNAKAN KIPAS DAN POMPA AIR BERBASIS ARDUINO UNO.Sensor api berfungsi sebagai mendeteksi adanya api. Sensor MQ-2 ini adalah komponen elektronika yang berfungsi untuk mendeteksi kadar nya asap atau asap yang terdapat di sekitarnya. Arduino Uno R3 Atmega 328P yang berfungsi sebagai pengolahan dan pengaturan dalam blok input dan output. LCD, pompa air, kipas angin, buzzer, relay 2 channel yang aktif bila mendapatkan sinyal masukan dari blok input sesuai dengan kondisi lalu aktif LOW untuk mengendalikan kipas dan pompa, Buzzer sebagai output berupa alarm penanda jika sensor api dan sensor MQ-2 sesuai dengan nilai analog maka buzzer berbunyi, kipas sebagai output berupa menghilangkan asap yaitu menggunakan kipas exhaust, pompa air sebagai output berupa penanda pemadam api, mengeluarkan air nya dikit. LCD 16x2 i2c sebagai output berupa penanda informasi keadaan yaitu ruangan ada api, bahaya asap dan nilai analog dan berupa tampilan ruangan aman.
+
+
+# Komponen Yang Digunakan
+Berikut adalah daftar komponen yang digunakan dalam proyek ini:
+
+1.Sensor Flame
+2. ARDUINO UNO R3
+3. Sensor MQ-2
+4 Kipas Angin
+5 LCD 16x2 i2c
+6 Buzzer 5v
+7 Pompa Air 12 v
+8 Relay 2 Channel
+
+
+# Skema Sistem
+
+**Skema Fritzing**
+![](/images/posts/relax-together-debounce/01.png)
+
+**Konfigurasi Pinout**
+![](/images/posts/relax-together-debounce/02.png)
+![](/images/posts/relax-together-debounce/03.png)
+![](/images/posts/relax-together-debounce/04.png)
+Penjelasan singkat mengenai skema sistem: ARDUINO UNO dihubungkan ke semua komponen sensor. kipas digunakan untuk menghilangkan asap.
+
+
+# Coding Arduino Skripsi 2023
+
+```c++
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h> 
+LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2);
+
+const int pinApi = A1;      //inisialisasi sensor api pin pada A1
+const int sensorAsap = A0; // inisialisasi sensor asap pin pada A0
+const int pompa = 8;       // inisialisasi pompa pin pada 8
+const int kipas = 7;      // inisialisasi kipas pin pada 7
+const int buzzer = 2;     // inisialisasi buzzer pin pada 2
+
+int fireValue = 0;
+int smokeValue = 0;
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+ pinMode(pinApi, INPUT); // Untuk menentukan pin sensor api sebagai input
+ pinMode(sensorAsap, INPUT); // Untuk menentukan pin sensor asap sebagai input
+ pinMode(buzzer, OUTPUT);  // Untuk menentukan pin buzzer sebagai output
+ pinMode(kipas, OUTPUT);  // Untuk menentukan pin kipas sebagai output
+ pinMode(pompa, OUTPUT); // Untuk menentukan pin pompa sebagai output
+digitalWrite(buzzer,LOW);
+digitalWrite(pompa,HIGH);
+digitalWrite(kipas,HIGH);
+}
+void loop() {
+ //output Asap
+smokeValue = analogRead(sensorAsap); // Membaca nilai sensor MQ-2
+fireValue = analogRead(pinApi); // Membaca nilai sensor api
+Serial.print("Asap: ");
+Serial.println(smokeValue);
+Serial.print("Api: ");
+Serial.println(fireValue);
+
+if (smokeValue > 300){
+  digitalWrite(buzzer, HIGH); 
+  digitalWrite(kipas, LOW);
+  lcd.setCursor(0, 0);
+  lcd.print("Asap : ");
+  lcd.print(smokeValue);
+  lcd.setCursor(2, 1);
+  lcd.print("Bahaya Asap");
+  delay(4000);
+  lcd.clear();
+ 
+}
+else {
+  digitalWrite(buzzer, LOW);
+  digitalWrite(kipas, HIGH);
+  lcd.setCursor(3, 1);
+  lcd.print("Ruangan Aman");
+  delay(2000);
+  lcd.clear();    
+}
+//output Api
+if (fireValue < 100){
+  digitalWrite(buzzer, HIGH);
+  digitalWrite(pompa, LOW);
+  lcd.setCursor(5, 0);
+  lcd.print("Api : ");
+  lcd.print(fireValue);
+  lcd.setCursor(1, 1);
+  lcd.print("Ruangan Ada Api");
+  delay(6000);
+  lcd.clear();  
+}
+else {
+  digitalWrite(buzzer, LOW);
+  digitalWrite(pompa, HIGH);
+  lcd.setCursor(2, 0);
+  lcd.print("Ruangan Aman");
+  delay(3000);
+  lcd.clear();
+}
+}
+```
+
+# Penjelasan Program
+1.	Semua komponen dalam kondisi tidak aktif.
+2.	Memeriksa ada atau tidaknya catu daya yang diperlukan, jika ada catu daya nya maka semua komponen aktif, jika tidak ada catu daya yang dialirkan maka program akan selesai.
+3.	5V melalui pin vcc untuk dua sensor, LCD 16x2, buzzer, Relay 2 channel dari arduino.
+4.	Inisialisasi semua pin, library dan variabel yang digunakan pada perancangan alatnya.
+5.	Sensor MQ-2  dan Sensor Api Aktif.
+6.	Sensor MQ-2 membaca asap dan Sensor Api membaca api.
+7.	Program arduino untuk LCD akan langsung ditampilkan pada LCD 16x2.
+8.	Jika Sensor MQ-2 mendeteksi asap lebih dari 300, maka buzzer, kipas menyala dan LCD menampilkan “ Bahaya Asap” dan nilai analog.
+9.	Jika Sensor MQ-2 tidak mendeteksi asap, maka buzzer, kipas tidak menyala dan LCD menampilkan “Ruangan Aman”.
+10.	Jika Sensor Api mendeteksi ada nya api kurang dari 100, maka buzzer, Pompa air menyala dan LCD menampilkan “Ruangan Ada Api” dan nilai analog.
+11.	Jika Sensor Api tidak mendeteksi ada nya api, maka buzzer, Pompa air tidak menyala dan LCD menampilkan “Ruangan Aman”.
+
+
+# Pengujian
+
+![](/images/posts/relax-together-debounce/05.png)
+Alat sistem alarm pendeteksi asap dan kebakaran dini telah berhasil di buat dan dari hasil pengujian pada alat tersebut
+
+
+
+# Kesimpulan
+Alat sistem alarm pendeteksi asap dan kebakaran dini telah berhasil di buat dan dari hasil pengujian pada alat tersebut dapat disimpulkan bahwa alat tersebut dapat mendeteksi asap dan api tersebut yang ditampilkan pada LCD dan alarm pada buzzer. Alat sistem alarm pendeteksi asap dan kebakaran dini ini dapat efektif dalam memberikan peringatan dini kepada manusia. Dengan adanya sistem ini, potensi kerugian akibat kebakaran dapat diminimalisir, karena manusia memiliki lebih banyak waktu untuk mengambil tindakan pencegahan atau evakuasi sebelum bahaya makin berkembang. 
+
+
